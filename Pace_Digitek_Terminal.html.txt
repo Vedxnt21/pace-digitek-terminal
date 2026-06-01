@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pace Digitek — Fundamental Terminal v2</title>
+<style>
+:root{--bg:#0f172a;--card:#1e293b;--text:#e2e8f0;--muted:#94a3b8;--green:#34d399;--amber:#fbbf24;--red:#f87171;--cyan:#22d3ee;--blue:#60a5fa;}
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',system-ui,sans-serif;}
+body{background:var(--bg);color:var(--text);line-height:1.6;}
+.container{max-width:1200px;margin:0 auto;padding:20px;}
+.header{text-align:center;padding:30px 0;border-bottom:2px solid var(--card);margin-bottom:20px;}
+.header h1{font-size:2.2rem;color:var(--cyan);letter-spacing:-0.5px;}
+.header h2{font-size:1.1rem;color:var(--muted);font-weight:400;margin-top:8px;}
+.badge{display:inline-block;padding:4px 12px;border-radius:20px;font-size:0.75rem;font-weight:600;text-transform:uppercase;margin:2px;}
+.sg{background:rgba(52,211,153,0.15);color:var(--green);border:1px solid var(--green);} /* green signal */
+.sa{background:rgba(251,191,36,0.15);color:var(--amber);border:1px solid var(--amber);} /* amber signal */
+.sr{background:rgba(248,113,113,0.15);color:var(--red);border:1px solid var(--red);} /* red signal */
+.sb-sig{background:rgba(34,211,238,0.15);color:var(--cyan);border:1px solid var(--cyan);} /* cyan signal */
+.sn{background:rgba(148,163,184,0.15);color:var(--muted);border:1px solid var(--muted);} /* neutral */
+.trd-g{color:var(--green);}.trd-a{color:var(--amber);}.trd-r{color:var(--red);}
+.trl-u{border-bottom:2px solid var(--green);}.trl-f{border-bottom:2px solid var(--amber);}.trl-d{border-bottom:2px solid var(--red);}
+.bmc-beat{border:1px solid var(--green);color:var(--green);padding:2px 8px;border-radius:4px;font-size:0.7rem;}
+.bmc-miss{border:1px solid var(--red);color:var(--red);padding:2px 8px;border-radius:4px;font-size:0.7rem;}
+.fvz-u{background:var(--green);opacity:0.3;}.fvz-f{background:var(--amber);opacity:0.3;}.fvz-p{background:var(--red);opacity:0.3;}
+.fv-mos-pos{background:rgba(52,211,153,0.2);color:var(--green);padding:4px 12px;border-radius:4px;font-weight:600;}
+.fv-mos-neg{background:rgba(248,113,113,0.2);color:var(--red);padding:4px 12px;border-radius:4px;font-weight:600;}
+.rf-ok{border:1px solid var(--green);background:rgba(52,211,153,0.1);padding:15px;border-radius:8px;}
+.rf-warn{border:1px solid var(--red);background:rgba(248,113,113,0.1);padding:15px;border-radius:8px;}
+.vbadge{display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border-radius:4px;font-size:0.7rem;background:rgba(52,211,153,0.1);color:var(--green);border:1px solid var(--green);}
+.card{background:var(--card);border-radius:12px;padding:20px;margin-bottom:16px;border:1px solid rgba(148,163,184,0.1);}
+.card h3{font-size:1.1rem;color:var(--cyan);margin-bottom:15px;display:flex;align-items:center;gap:8px;}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;}
+.grid-4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:16px;}
+@media(max-width:768px){.grid-2,.grid-3,.grid-4{grid-template-columns:1fr;}}
+.metric{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid rgba(148,163,184,0.1);}
+.metric:last-child{border-bottom:none;}
+.metric-label{color:var(--muted);font-size:0.85rem;}
+.metric-value{font-weight:600;font-size:0.95rem;}
+.bar-container{height:28px;background:rgba(15,23,42,0.5);border-radius:6px;position:relative;overflow:hidden;margin:8px 0;}
+.bar{height:100%;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:600;}
+.bar-green{background:var(--green);color:#064e3b;}
+.bar-amber{background:var(--amber);color:#78350f;}
+.bar-red{background:var(--red);color:#7f1d1d;}
+.cursor{position:absolute;top:0;width:3px;height:100%;background:#fff;box-shadow:0 0 8px rgba(255,255,255,0.8);z-index:10;}
+.score-ring{width:120px;height:120px;margin:0 auto 15px;}
+.score-ring svg{transform:rotate(-90deg);}
+.score-text{text-align:center;font-size:2rem;font-weight:700;color:var(--cyan);}
+.score-label{text-align:center;font-size:0.8rem;color:var(--muted);margin-top:4px;}
+table{width:100%;border-collapse:collapse;font-size:0.85rem;}
+th,td{padding:10px 8px;text-align:left;border-bottom:1px solid rgba(148,163,184,0.1);}
+th{color:var(--muted);font-weight:500;font-size:0.75rem;text-transform:uppercase;}
+td{font-weight:500;}
+.highlight{background:rgba(34,211,238,0.08);}
+.winner{color:var(--green);font-weight:700;}
+.loser{color:var(--red);font-weight:700;}
+.neutral{color:var(--amber);}
+.footer{text-align:center;padding:30px;color:var(--muted);font-size:0.75rem;border-top:2px solid var(--card);margin-top:30px;}
+.tabs{display:flex;gap:8px;margin-bottom:16px;overflow-x:auto;}
+.tab{padding:8px 16px;border-radius:8px;background:var(--card);color:var(--muted);font-size:0.85rem;cursor:pointer;white-space:nowrap;border:1px solid transparent;}
+.tab.active{background:rgba(34,211,238,0.15);color:var(--cyan);border-color:var(--cyan);}
+.news-item{padding:12px 0;border-bottom:1px solid rgba(148,163,184,0.1);}
+.news-item:last-child{border-bottom:none;}
+.news-date{font-size:0.7rem;color:var(--muted);}
+.news-headline{font-size:0.9rem;margin-top:4px;}
+</style>
+</head>
+<body>
+<div class="container">
+
+<!-- HEADER -->
+<div class="header">
+  <h1>🔋 PACE DIGITEK LIMITED</h1>
+  <h2>NSE: PACEDIGITK | BSE: 544550 | Sector: Telecom Infrastructure / Energy (BESS)</h2>
+  <div style="margin-top:12px;">
+    <span class="badge sg">✓ Web-verified data</span>
+    <span class="badge sa">Moderate Confidence</span>
+    <span class="badge sb-sig">Data Coverage: 8.0/11</span>
+  </div>
+</div>
+
+<!-- CONFIDENCE BAR -->
+<div class="card">
+  <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+    <span class="vbadge">✓ NSE Price Verified</span>
+    <span class="vbadge">✓ Screener.in Ratios</span>
+    <span class="vbadge">✓ Annual Report FY25</span>
+    <span class="vbadge">✓ BSE FY26 Results</span>
+    <span class="vbadge">✓ Trendlyne Shareholding</span>
+    <span class="vbadge" style="color:var(--amber);border-color:var(--amber);">⚠ No 5Y P/E History</span>
+    <span class="vbadge" style="color:var(--amber);border-color:var(--amber);">⚠ No Consensus Estimates</span>
+  </div>
+</div>
+
+<!-- TAB 1: PRICE + 52W RANGE -->
+<div class="card">
+  <h3>📍 Price & 52-Week Range</h3>
+  <div class="grid-4">
+    <div style="text-align:center;">
+      <div style="font-size:0.75rem;color:var(--muted);">CMP</div>
+      <div style="font-size:1.8rem;font-weight:700;color:var(--cyan);">₹182.04</div>
+      <div style="font-size:0.7rem;color:var(--red);">▼ 4.16% (Jun 1)</div>
+    </div>
+    <div style="text-align:center;">
+      <div style="font-size:0.75rem;color:var(--muted);">52W High</div>
+      <div style="font-size:1.4rem;font-weight:600;">₹231.95</div>
+    </div>
+    <div style="text-align:center;">
+      <div style="font-size:0.75rem;color:var(--muted);">52W Low</div>
+      <div style="font-size:1.4rem;font-weight:600;">₹139.81</div>
+    </div>
+    <div style="text-align:center;">
+      <div style="font-size:0.75rem;color:var(--muted);">Market Cap</div>
+      <div style="font-size:1.4rem;font-weight:600;">₹3,929 Cr</div>
+    </div>
+  </div>
+  <div style="margin-top:15px;">
+    <div style="font-size:0.75rem;color:var(--muted);margin-bottom:6px;">52W Range Position</div>
+    <div class="bar-container">
+      <div style="position:absolute;left:0;width:100%;height:100%;background:linear-gradient(90deg,var(--green) 0%,var(--amber) 50%,var(--red) 100%);opacity:0.2;"></div>
+      <div class="cursor" style="left:48.5%;"></div>
+      <div style="position:absolute;left:48.5%;top:-18px;transform:translateX(-50%);font-size:0.7rem;font-weight:600;color:#fff;">CMP ₹182</div>
+    </div>
+    <div style="display:flex;justify-content:space-between;font-size:0.7rem;color:var(--muted);">
+      <span>₹139.81 (Low)</span>
+      <span>48.5% from low</span>
+      <span>₹231.95 (High)</span>
+    </div>
+  </div>
+</div>
+
+<!-- TAB 2: VALUATION -->
+<div class="card">
+  <h3>⚖️ Valuation Classification</h3>
+  <div class="grid-3">
+    <div>
+      <div class="metric"><span class="metric-label">P/E (Current)</span><span class="metric-value">14.0x</span></div>
+      <div class="metric"><span class="metric-label">P/E (Sector Avg)</span><span class="metric-value">16.7x</span></div>
+      <div class="metric"><span class="metric-label">P/E (5Y Avg)</span><span class="metric-value" style="color:var(--amber);">🚩 N/A</span></div>
+      <div class="metric"><span class="metric-label">P/E Verdict</span><span class="badge sg">CHEAP</span></div>
+    </div>
+    <div>
+      <div class="metric"><span class="metric-label">P/B (Current)</span><span class="metric-value">1.8x</span></div>
+      <div class="metric"><span class="metric-label">P/B (Sector Avg)</span><span class="metric-value">2.0x</span></div>
+      <div class="metric"><span class="metric-label">P/B (5Y Avg)</span><span class="metric-value" style="color:var(--amber);">🚩 N/A</span></div>
+      <div class="metric"><span class="metric-label">P/B Verdict</span><span class="badge sa">FAIR</span></div>
+    </div>
+    <div>
+      <div class="metric"><span class="metric-label">PEG</span><span class="metric-value" style="color:var(--amber);">🚩 N/A</span></div>
+      <div class="metric"><span class="metric-label">EV/EBITDA</span><span class="metric-value" style="color:var(--amber);">🚩 N/A</span></div>
+      <div class="metric"><span class="metric-label">Overall</span><span class="badge sg">UNDERVALUED</span></div>
+    </div>
+  </div>
+  <div style="margin-top:12px;padding:10px;background:rgba(52,211,153,0.05);border-radius:6px;font-size:0.8rem;color:var(--muted);">
+    <strong style="color:var(--green);">Valuation Logic:</strong> P/E trades at ~16% discount to sector. P/B at ~10% discount. Limited listing history (Oct 2025) prevents 5-year average comparison. No PEG due to unreliable 3Y EPS CAGR from share count changes.
+  </div>
+</div>
+
+<!-- TAB 3: FAIR VALUE RANGE -->
+<div class="card">
+  <h3>🎯 Fair Value Range (1-Year Forward)</h3>
+  <div style="margin-bottom:15px;">
+    <div style="font-size:0.75rem;color:var(--muted);margin-bottom:6px;">Forward EPS = FY26 EPS ₹13.79 × (1 + growth) | P/E Range: 12.8x–15.6x (since listing)</div>
+    <div class="bar-container" style="height:40px;">
+      <div style="position:absolute;left:0;width:28%;height:100%;background:var(--green);opacity:0.4;display:flex;align-items:center;justify-content:center;font-size:0.7rem;font-weight:600;">Undervalued<br>₹140–185</div>
+      <div style="position:absolute;left:28%;width:42%;height:100%;background:var(--amber);opacity:0.4;display:flex;align-items:center;justify-content:center;font-size:0.7rem;font-weight:600;">Fair Zone<br>₹185–269</div>
+      <div style="position:absolute;left:70%;width:30%;height:100%;background:var(--red);opacity:0.4;display:flex;align-items:center;justify-content:center;font-size:0.7rem;font-weight:600;">Premium<br>₹269–310</div>
+      <div class="cursor" style="left:26%;"></div>
+      <div style="position:absolute;left:26%;top:-18px;transform:translateX(-50%);font-size:0.7rem;font-weight:600;color:#fff;background:var(--red);padding:2px 8px;border-radius:4px;">CMP ₹182</div>
+    </div>
+  </div>
+  <div class="grid-4">
+    <div style="text-align:center;padding:12px;background:rgba(52,211,153,0.1);border-radius:8px;">
+      <div style="font-size:0.7rem;color:var(--muted);">Bear FV</div>
+      <div style="font-size:1.3rem;font-weight:700;color:var(--green);">₹185</div>
+      <div style="font-size:0.65rem;color:var(--muted);">EPS ₹14.5 × 12.8x</div>
+    </div>
+    <div style="text-align:center;padding:12px;background:rgba(251,191,36,0.1);border-radius:8px;">
+      <div style="font-size:0.7rem;color:var(--muted);">Base FV</div>
+      <div style="font-size:1.3rem;font-weight:700;color:var(--amber);">₹225</div>
+      <div style="font-size:0.65rem;color:var(--muted);">EPS ₹15.9 × 14.2x</div>
+    </div>
+    <div style="text-align:center;padding:12px;background:rgba(251,191,36,0.1);border-radius:8px;">
+      <div style="font-size:0.7rem;color:var(--muted);">Bull FV</div>
+      <div style="font-size:1.3rem;font-weight:700;color:var(--cyan);">₹269</div>
+      <div style="font-size:0.65rem;color:var(--muted);">EPS ₹17.2 × 15.6x</div>
+    </div>
+    <div style="text-align:center;padding:12px;background:rgba(52,211,153,0.15);border-radius:8px;">
+      <div style="font-size:0.7rem;color:var(--muted);">Margin of Safety</div>
+      <div style="font-size:1.3rem;font-weight:700;color:var(--green);">19.2%</div>
+      <div style="font-size:0.65rem;color:var(--muted);">to Base FV</div>
+    </div>
+  </div>
+  <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;">
+    <span class="badge sg">&lt; ₹185: Strong Buy Zone</span>
+    <span class="badge sa">₹185–225: Accumulate Zone</span>
+    <span class="badge sn">₹225–269: Hold Zone</span>
+    <span class="badge sr">&gt; ₹269: Book Partial Profits</span>
+  </div>
+</div>
+
+<!-- TAB 4: GROWTH -->
+<div class="card">
+  <h3>📈 Growth & Earnings Consistency</h3>
+  <div class="grid-2">
+    <div>
+      <div class="metric"><span class="metric-label">Revenue FY23</span><span class="metric-value">₹503 Cr</span></div>
+      <div class="metric"><span class="metric-label">Revenue FY24</span><span class="metric-value">₹2,434 Cr <span class="trd-g">▲ 384%</span></span></div>
+      <div class="metric"><span class="metric-label">Revenue FY25</span><span class="metric-value">₹2,439 Cr <span class="trd-a">▲ 0.2%</span></span></div>
+      <div class="metric"><span class="metric-label">Revenue FY26</span><span class="metric-value">₹2,641 Cr <span class="trd-g">▲ 8.3%</span></span></div>
+      <div class="metric"><span class="metric-label">3Y Rev CAGR</span><span class="metric-value" style="color:var(--green);">~120%</span></div>
+      <div class="metric"><span class="metric-label">Growth Trend</span><span class="badge sa">STEADY</span></div>
+    </div>
+    <div>
+      <div class="metric"><span class="metric-label">EBITDA Margin FY23</span><span class="metric-value">5.6%</span></div>
+      <div class="metric"><span class="metric-label">EBITDA Margin FY24</span><span class="metric-value">16.3%</span></div>
+      <div class="metric"><span class="metric-label">EBITDA Margin FY25</span><span class="metric-value">19.8%</span></div>
+      <div class="metric"><span class="metric-label">EBITDA Margin FY26</span><span class="metric-value">17.0% <span class="trd-r">▼ 2.8pp</span></span></div>
+      <div class="metric"><span class="metric-label">Margin Trend</span><span class="badge sa">MIXED</span></div>
+      <div class="metric"><span class="metric-label">Earnings Consistency</span><span class="badge sr">🚩 UNAVAILABLE</span></div>
+    </div>
+  </div>
+  <div style="margin-top:12px;padding:10px;background:rgba(251,191,36,0.05);border-radius:6px;font-size:0.8rem;color:var(--muted);">
+    <strong style="color:var(--amber);">Growth Context:</strong> FY24 surge (+384%) was driven by a one-off large PSU telecom contract. FY25 was flat as base normalized. FY26 shows +8.3% growth with order book expanding 48% to ₹11,338 Cr. BESS manufacturing ramp (5→10 GWh) is the key forward driver. Margins compressed from 19.8% to 17.0% in FY26 due to project mix shift.
+  </div>
+</div>
+
+<!-- TAB 5: FINANCIAL HEALTH -->
+<div class="card">
+  <h3>🏥 Financial Health</h3>
+  <div class="grid-3">
+    <div>
+      <div class="metric"><span class="metric-label">D/E Ratio</span><span class="metric-value">0.11x</span></div>
+      <div class="metric"><span class="metric-label">Verdict</span><span class="badge sg">SAFE</span></div>
+      <div class="metric"><span class="metric-label">ICR FY25</span><span class="metric-value">3.33x</span></div>
+      <div class="metric"><span class="metric-label">ICR FY26</span><span class="metric-value">7.17x</span></div>
+      <div class="metric"><span class="metric-label">Verdict</span><span class="badge sg">HEALTHY</span></div>
+    </div>
+    <div>
+      <div class="metric"><span class="metric-label">Current Ratio FY25</span><span class="metric-value">1.87x</span></div>
+      <div class="metric"><span class="metric-label">Current Ratio FY26</span><span class="metric-value">2.38x</span></div>
+      <div class="metric"><span class="metric-label">Verdict</span><span class="badge sg">COMFORTABLE</span></div>
+      <div class="metric"><span class="metric-label">FCF FY25</span><span class="metric-value" style="color:var(--red);">₹(212) Cr</span></div>
+      <div class="metric"><span class="metric-label">FCF FY26</span><span class="metric-value" style="color:var(--red);">₹(998) Cr</span></div>
+      <div class="metric"><span class="metric-label">Verdict</span><span class="badge sr">CONCERN</span></div>
+    </div>
+    <div>
+      <div class="metric"><span class="metric-label">OCF/NP FY25</span><span class="metric-value" style="color:var(--red);">-0.63x</span></div>
+      <div class="metric"><span class="metric-label">OCF/NP FY26</span><span class="metric-value" style="color:var(--red);">-2.99x</span></div>
+      <div class="metric"><span class="metric-label">Verdict</span><span class="badge sr">RED FLAG</span></div>
+      <div class="metric"><span class="metric-label">Debtor Days</span><span class="metric-value" style="color:var(--red);">286 days</span></div>
+      <div class="metric"><span class="metric-label">Working Cap Days</span><span class="metric-value" style="color:var(--red);">117 days ↑</span></div>
+      <div class="metric"><span class="metric-label">Verdict</span><span class="badge sr">DETERIORATING</span></div>
+    </div>
+  </div>
+  <div style="margin-top:12px;padding:10px;background:rgba(248,113,113,0.05);border-radius:6px;font-size:0.8rem;color:var(--muted);">
+    <strong style="color:var(--red);">Critical Health Warning:</strong> Despite low D/E and healthy ICR/CR, the company burns cash aggressively. FCF deeply negative for 2 consecutive years. OCF/NP ratio is severely negative (-2.99x), indicating reported profits are NOT converting to cash. Debtor days at 286 days is extremely high for an EPC business. Working capital days rose from 72 to 117. This is the #1 risk factor.
+  </div>
+</div>
+
+<!-- TAB 6: RETURNS + CAPITAL ALLOCATION -->
+<div class="card">
+  <h3>💰 Returns & Capital Allocation</h3>
+  <div class="grid-2">
+    <div>
+      <div class="metric"><span class="metric-label">ROE FY26</span><span class="metric-value">17.6%</span></div>
+      <div class="metric"><span class="metric-label">ROCE FY26</span><span class="metric-value">21.3%</span></div>
+      <div class="metric"><span class="metric-label">3Y Avg ROE</span><span class="metric-value">26.4%</span></div>
+      <div class="metric"><span class="metric-label">Returns Verdict</span><span class="badge sg">GOOD</span></div>
+    </div>
+    <div>
+      <div class="metric"><span class="metric-label">ROIC vs WACC</span><span class="metric-value">~21% vs ~12% <span class="trd-g">✓</span></span></div>
+      <div class="metric"><span class="metric-label">Dividend/Buyback</span><span class="metric-value">None <span class="trd-r">✗</span></span></div>
+      <div class="metric"><span class="metric-label">Capex Discipline</span><span class="metric-value">Assets doubled <span class="trd-r">✗</span></span></div>
+      <div class="metric"><span class="metric-label">Allocation Score</span><span class="metric-value">1.5/3 <span class="badge sa">AVERAGE</span></span></div>
+    </div>
+  </div>
+  <div style="margin-top:10px;">
+    <div style="font-size:0.75rem;color:var(--muted);margin-bottom:6px;">Capital Allocation Quality</div>
+    <div class="grid-3">
+      <div style="padding:10px;background:rgba(52,211,153,0.1);border-radius:6px;text-align:center;">
+        <div style="font-size:1.2rem;">✓</div>
+        <div style="font-size:0.75rem;">ROCE > WACC</div>
+        <div style="font-size:0.65rem;color:var(--muted);">21.3% vs ~12%</div>
+      </div>
+      <div style="padding:10px;background:rgba(248,113,113,0.1);border-radius:6px;text-align:center;">
+        <div style="font-size:1.2rem;color:var(--red);">✗</div>
+        <div style="font-size:0.75rem;">No Cash Returns</div>
+        <div style="font-size:0.65rem;color:var(--muted);">0% dividend, no buyback</div>
+      </div>
+      <div style="padding:10px;background:rgba(248,113,113,0.1);border-radius:6px;text-align:center;">
+        <div style="font-size:1.2rem;color:var(--red);">✗</div>
+        <div style="font-size:0.75rem;">Capex > Revenue</div>
+        <div style="font-size:0.65rem;color:var(--muted);">Assets doubled, rev +8%</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TAB 7: FORWARD PROJECTIONS -->
+<div class="card">
+  <h3>🔮 Forward Projections (3-5 Year)</h3>
+  <div style="margin-bottom:15px;">
+    <div style="font-size:0.75rem;color:var(--muted);margin-bottom:6px;">Revenue Scenario Bars (FY26 Base = 100%)</div>
+    <div class="bar-container">
+      <div class="bar bar-red" style="width:28%;">Bear: 5% CAGR</div>
+      <div class="bar bar-amber" style="width:67%;position:absolute;left:28%;">Base: 12% CAGR</div>
+      <div class="bar bar-green" style="width:100%;position:absolute;left:0;opacity:0.3;">Bull: 18% CAGR</div>
+    </div>
+  </div>
+  <div class="grid-3">
+    <div style="padding:12px;background:rgba(248,113,113,0.1);border-radius:8px;">
+      <div style="font-size:0.7rem;color:var(--muted);">Bear Case</div>
+      <div style="font-size:1.1rem;font-weight:700;color:var(--red);">5% Rev CAGR</div>
+      <div style="font-size:0.75rem;color:var(--muted);">Margin: 15%</div>
+      <div style="font-size:0.7rem;margin-top:4px;">Execution delays, BESS margin compression, working capital drag continues</div>
+    </div>
+    <div style="padding:12px;background:rgba(251,191,36,0.1);border-radius:8px;">
+      <div style="font-size:0.7rem;color:var(--muted);">Base Case</div>
+      <div style="font-size:1.1rem;font-weight:700;color:var(--amber);">12% Rev CAGR</div>
+      <div style="font-size:0.75rem;color:var(--muted);">Margin: 17%</div>
+      <div style="font-size:0.7rem;margin-top:4px;">Order book execution, BESS 10 GWh by FY27, telecom O&M annuity stable</div>
+    </div>
+    <div style="padding:12px;background:rgba(52,211,153,0.1);border-radius:8px;">
+      <div style="font-size:0.7rem;color:var(--muted);">Bull Case</div>
+      <div style="font-size:1.1rem;font-weight:700;color:var(--green);">18% Rev CAGR</div>
+      <div style="font-size:0.75rem;color:var(--muted);">Margin: 19%</div>
+      <div style="font-size:0.7rem;margin-top:4px;">Africa expansion, BESS export success, BharatNet Phase III wins</div>
+    </div>
+  </div>
+</div>
+
+<!-- TAB 8: PEER COMPARISON -->
+<div class="card">
+  <h3>🏆 Peer Comparison</h3>
+  <table>
+    <thead>
+      <tr><th>Company</th><th>P/E</th><th>P/B</th><th>ROE %</th><th>Rev Gr 3Y</th><th>D/E</th><th>Verdict</th></tr>
+    </thead>
+    <tbody>
+      <tr class="highlight">
+        <td><strong>Pace Digitek</strong></td>
+        <td>14.0x</td>
+        <td>1.8x</td>
+        <td>17.6%</td>
+        <td>120%</td>
+        <td>0.11</td>
+        <td><span class="badge sg">CHEAP</span></td>
+      </tr>
+      <tr>
+        <td>Indus Towers</td>
+        <td>16.3x</td>
+        <td>2.5x</td>
+        <td class="winner">19.5%</td>
+        <td>5.0%</td>
+        <td>0.35</td>
+        <td><span class="badge sn">MID-PACK</span></td>
+      </tr>
+      <tr>
+        <td>HFCL</td>
+        <td class="loser">88.4x</td>
+        <td>3.0x</td>
+        <td>10.9%</td>
+        <td class="winner">128%</td>
+        <td>0.45</td>
+        <td><span class="badge sr">EXPENSIVE</span></td>
+      </tr>
+      <tr>
+        <td>Bondada Engg</td>
+        <td>18.1x</td>
+        <td>3.0x</td>
+        <td class="winner">38.7%</td>
+        <td>27.9%</td>
+        <td>0.25</td>
+        <td><span class="badge sa">FAIR</span></td>
+      </tr>
+      <tr>
+        <td>Vindhya Tele</td>
+        <td class="winner">11.9x</td>
+        <td class="winner">1.2x</td>
+        <td>8.1%</td>
+        <td class="loser">-18.0%</td>
+        <td>0.30</td>
+        <td><span class="badge sr">DECLINING</span></td>
+      </tr>
+    </tbody>
+  </table>
+  <div style="margin-top:10px;font-size:0.8rem;color:var(--muted);">
+    Pace Digitek trades at the <strong>lowest P/E</strong> among profitable peers and the <strong>lowest D/E</strong>. However, it lacks the ROE depth of Bondada and the market leadership of Indus Towers. Valuation discount appears justified by cash flow quality concerns.
+  </div>
+</div>
+
+<!-- TAB 9: OWNERSHIP -->
+<div class="card">
+  <h3>👥 Ownership & Management Accountability</h3>
+  <div class="grid-2">
+    <div>
+      <div class="metric"><span class="metric-label">Promoter (Mar 2026)</span><span class="metric-value">69.52%</span></div>
+      <div class="metric"><span class="metric-label">Promoter (Dec 2025)</span><span class="metric-value">69.52%</span></div>
+      <div class="metric"><span class="metric-label">Change</span><span class="metric-value badge sn">STABLE (±0%)</span></div>
+      <div class="metric"><span class="metric-label">Pledging</span><span class="metric-value badge sg">0.0% — SAFE</span></div>
+      <div class="metric"><span class="metric-label">FII (Mar 2026)</span><span class="metric-value" style="color:var(--red);">0.56% ↓</span></div>
+      <div class="metric"><span class="metric-label">FII (Dec 2025)</span><span class="metric-value">2.31%</span></div>
+      <div class="metric"><span class="metric-label">FII Trend</span><span class="badge sr">DECREASING (-1.75pp)</span></div>
+      <div class="metric"><span class="metric-label">DII (Mar 2026)</span><span class="metric-value" style="color:var(--green);">5.99% ↑</span></div>
+      <div class="metric"><span class="metric-label">DII (Dec 2025)</span><span class="metric-value">5.18%</span></div>
+      <div class="metric"><span class="metric-label">DII Trend</span><span class="badge sg">INCREASING (+0.81pp)</span></div>
+    </div>
+    <div>
+      <div class="metric"><span class="metric-label">Board Size</span><span class="metric-value">5 Directors</span></div>
+      <div class="metric"><span class="metric-label">Independent</span><span class="metric-value">3 (60%)</span></div>
+      <div class="metric"><span class="metric-label">Women Directors</span><span class="metric-value">1 (Padma Maddisetty — Promoter)</span></div>
+      <div class="metric"><span class="metric-label">Women Independent</span><span class="metric-value" style="color:var(--red);">0</span></div>
+      <div class="metric"><span class="metric-label">Auditor</span><span class="metric-value">S S Kothari Mehta & Co.</span></div>
+      <div class="metric"><span class="metric-label">Auditor Opinion</span><span class="badge sg">Unqualified</span></div>
+      <div class="metric"><span class="metric-label">Management Guidance</span><span class="badge sr">🚩 No Formal Guidance</span></div>
+      <div class="metric"><span class="metric-label">Accountability Score</span><span class="badge sr">🚩 N/A</span></div>
+    </div>
+  </div>
+  <div style="margin-top:10px;padding:10px;background:rgba(251,191,36,0.05);border-radius:6px;font-size:0.8rem;color:var(--muted);">
+    <strong style="color:var(--amber);">Ownership Signal:</strong> Promoters locked in at 69.52% with zero pledging — strong alignment. However, FII exit (-1.75pp in one quarter) is a concern. DII/MF entry (Bandhan Small Cap at 3.6%) provides some offset. Management does not provide formal quarterly guidance, making accountability tracking impossible.
+  </div>
+</div>
+
+<!-- TAB 10: RED FLAGS -->
+<div class="card">
+  <h3>🚩 Red Flags Aggregation</h3>
+  <div class="rf-warn">
+    <div style="font-size:1rem;font-weight:600;color:var(--red);margin-bottom:10px;">⚠️ 4 Critical Flags Detected</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:0.85rem;">
+      <div>☑️ <strong>RPT >5% of revenue</strong> — Lineage Power transactions at 43% of FY25 revenue</div>
+      <div>☑️ <strong>Single customer >25%</strong> — >90% revenue from few telecom clients; 97.8% order book PSU</div>
+      <div>☑️ <strong>OCF/NP <0.5</strong> — FY26 at -2.99x; profits not converting to cash for 2 years</div>
+      <div>☑️ <strong>Working capital days rising</strong> — 72→117 days; debtor days at 286</div>
+    </div>
+    <div style="margin-top:12px;padding:8px;background:rgba(248,113,113,0.1);border-radius:4px;font-size:0.8rem;">
+      <strong>Additional Concerns:</strong> No dividend/buyback history; negative FCF ₹998 Cr in FY26; customer concentration in Maharashtra; BESS margin unproven at scale; Africa expansion early stage.
+    </div>
+  </div>
+</div>
+
+<!-- TAB 11: QUARTERLY EPS TRACK -->
+<div class="card">
+  <h3>📅 Quarterly EPS Track (Last 8 Quarters)</h3>
+  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;">
+    <div style="flex:1;min-width:100px;text-align:center;padding:8px;background:rgba(148,163,184,0.1);border-radius:6px;">
+      <div style="font-size:0.65rem;color:var(--muted);">Q1 FY25</div>
+      <div style="font-size:0.9rem;font-weight:600;">🚩</div>
+      <div style="font-size:0.6rem;color:var(--muted);">Data unreliable</div>
+    </div>
+    <div style="flex:1;min-width:100px;text-align:center;padding:8px;background:rgba(148,163,184,0.1);border-radius:6px;">
+      <div style="font-size:0.65rem;color:var(--muted);">Q2 FY25</div>
+      <div style="font-size:0.9rem;font-weight:600;">🚩</div>
+      <div style="font-size:0.6rem;color:var(--muted);">Data unreliable</div>
+    </div>
+    <div style="flex:1;min-width:100px;text-align:center;padding:8px;background:rgba(148,163,184,0.1);border-radius:6px;">
+      <div style="font-size:0.65rem;color:var(--muted);">Q3 FY25</div>
+      <div style="font-size:0.9rem;font-weight:600;">🚩</div>
+      <div style="font-size:0.6rem;color:var(--muted);">Data unreliable</div>
+    </div>
+    <div style="flex:1;min-width:100px;text-align:center;padding:8px;background:rgba(52,211,153,0.1);border-radius:6px;">
+      <div style="font-size:0.65rem;color:var(--muted);">Q4 FY25</div>
+      <div style="font-size:0.9rem;font-weight:600;">₹3.21</div>
+      <div style="font-size:0.6rem;color:var(--muted);">Post-IPO base</div>
+    </div>
+    <div style="flex:1;min-width:100px;text-align:center;padding:8px;background:rgba(251,191,36,0.1);border-radius:6px;">
+      <div style="font-size:0.65rem;color:var(--muted);">Q1 FY26</div>
+      <div style="font-size:0.9rem;font-weight:600;">₹3.03</div>
+      <div style="font-size:0.6rem;color:var(--muted);">▼ 5.6% QoQ</div>
+    </div>
+    <div style="flex:1;min-width:100px;text-align:center;padding:8px;background:rgba(52,211,153,0.1);border-radius:6px;">
+      <div style="font-size:0.65rem;color:var(--muted);">Q2 FY26</div>
+      <div style="font-size:0.9rem;font-weight:600;">₹3.59</div>
+      <div style="font-size:0.6rem;color:var(--muted);">▲ 18.5% QoQ</div>
+    </div>
+    <div style="flex:1;min-width:100px;text-align:center;padding:8px;background:rgba(251,191,36,0.1);border-radius:6px;">
+      <div style="font-size:0.65rem;color:var(--muted);">Q3 FY26</div>
+      <div style="font-size:0.9rem;font-weight:600;">₹3.51</div>
+      <div style="font-size:0.6rem;color:var(--muted);">▼ 2.2% QoQ</div>
+    </div>
+    <div style="flex:1;min-width:100px;text-align:center;padding:8px;background:rgba(52,211,153,0.1);border-radius:6px;">
+      <div style="font-size:0.65rem;color:var(--muted);">Q4 FY26</div>
+      <div style="font-size:0.9rem;font-weight:600;">₹4.59</div>
+      <div style="font-size:0.6rem;color:var(--muted);">▲ 30.8% QoQ</div>
+    </div>
+  </div>
+  <div style="font-size:0.8rem;color:var(--muted);padding:8px;background:rgba(251,191,36,0.05);border-radius:6px;">
+    <strong>Note:</strong> First 3 quarters show unreliable EPS due to pre-IPO share count and bonus issue adjustments. Post-IPO quarterly EPS shows volatility (₹3.03→₹3.59→₹3.51→₹4.59). Q4 FY26 seasonal strength evident. <strong>Consensus beat/miss tracking unavailable</strong> — only 1 analyst covers the stock.
+  </div>
+</div>
+
+<!-- TAB 12: NEWS -->
+<div class="card">
+  <h3>📰 Top 5 News Items (Long-Term Relevant)</h3>
+  <div class="news-item">
+    <div class="news-date">May 26, 2026 — BSE Filing</div>
+    <div class="news-headline"><strong>FY26 Results:</strong> Revenue ₹2,641 Cr (+8.3%), PAT ₹307 Cr, Order Book ₹11,338 Cr (+48%). Investor call audio released.</div>
+  </div>
+  <div class="news-item">
+    <div class="news-date">May 26, 2026 — BSE Filing</div>
+    <div class="news-headline"><strong>Postal Ballot:</strong> 2 RPT resolutions passed, 4 failed. Governance test shows minority pushback on related-party transactions.</div>
+  </div>
+  <div class="news-item">
+    <div class="news-date">Apr 1, 2026 — MoneyControl</div>
+    <div class="news-headline"><strong>NTPC Order:</strong> LoA worth ₹494.5 Cr for BESS/energy projects. Stock jumped 10% on announcement.</div>
+  </div>
+  <div class="news-item">
+    <div class="news-date">Feb 24, 2026 — Economic Times</div>
+    <div class="news-headline"><strong>Order Win:</strong> ₹158.7 Cr purchase order received. Continued inflow momentum in energy segment.</div>
+  </div>
+  <div class="news-item">
+    <div class="news-date">Feb 9, 2026 — Company Press Release</div>
+    <div class="news-headline"><strong>Q3 FY26 Results:</strong> Revenue ₹644 Cr (+13.5% YoY), PAT ₹79 Cr. BESS capacity expansion 5→10 GWh on track. Strategic partnership with NEC XON for Africa.</div>
+  </div>
+</div>
+
+<!-- TAB 13: OVERALL VIEW -->
+<div class="card" style="border:2px solid var(--cyan);">
+  <h3>⭐ OVERALL VIEW — PACE DIGITEK</h3>
+  
+  <div class="grid-3" style="margin-bottom:15px;">
+    <div style="text-align:center;">
+      <div class="score-ring">
+        <svg width="120" height="120" viewBox="0 0 120 120">
+          <circle cx="60" cy="60" r="54" fill="none" stroke="rgba(148,163,184,0.2)" stroke-width="8"/>
+          <circle cx="60" cy="60" r="54" fill="none" stroke="#fbbf24" stroke-width="8" stroke-dasharray="339.292" stroke-dashoffset="118.75" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <div class="score-text">8.0</div>
+      <div class="score-label">/ 11.0 — MODERATE</div>
+    </div>
+    <div>
+      <div style="font-size:0.8rem;color:var(--cyan);font-weight:600;margin-bottom:8px;">6-Signal Dashboard</div>
+      <div class="metric"><span class="metric-label">Valuation</span><span class="badge sg">UNDERVALUED</span></div>
+      <div class="metric"><span class="metric-label">Growth</span><span class="badge sa">STEADY</span></div>
+      <div class="metric"><span class="metric-label">Health</span><span class="badge sa">MIXED</span></div>
+      <div class="metric"><span class="metric-label">Returns</span><span class="badge sg">GOOD</span></div>
+      <div class="metric"><span class="metric-label">Capital Allocation</span><span class="badge sa">AVERAGE</span></div>
+      <div class="metric"><span class="metric-label">Earnings Consistency</span><span class="badge sr">🚩 N/A</span></div>
+    </div>
+    <div>
+      <div style="font-size:0.8rem;color:var(--cyan);font-weight:600;margin-bottom:8px;">Fair Value Position</div>
+      <div style="padding:10px;background:rgba(52,211,153,0.1);border-radius:8px;margin-bottom:8px;">
+        <div style="font-size:0.7rem;color:var(--muted);">CMP vs Base FV</div>
+        <div style="font-size:1.2rem;font-weight:700;color:var(--green);">₹182 vs ₹225</div>
+        <div style="font-size:0.75rem;"><span class="fv-mos-pos">+19.2% MOS</span></div>
+      </div>
+      <div style="font-size:0.75rem;color:var(--muted);">
+        Entry: &lt; ₹185 (Strong Buy)<br>
+        Accumulate: ₹185–225<br>
+        Hold: ₹225–269<br>
+        Exit: &gt; ₹269
+      </div>
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:15px;">
+    <div>
+      <div style="font-size:0.8rem;color:var(--green);font-weight:600;margin-bottom:8px;">3 Strengths</div>
+      <div style="font-size:0.85rem;color:var(--muted);">
+        1. <strong style="color:var(--text);">Order book surge:</strong> ₹11,338 Cr (+48%) provides 4.3x revenue visibility<br>
+        2. <strong style="color:var(--text);">BESS early mover:</strong> 5 GWh operational, expanding to 10 GWh by FY27 — India's largest BESS plant<br>
+        3. <strong style="color:var(--text);">Low leverage:</strong> D/E 0.11x, ICR 7.17x, CR 2.38x — balance sheet is conservative
+      </div>
+    </div>
+    <div>
+      <div style="font-size:0.8rem;color:var(--red);font-weight:600;margin-bottom:8px;">2 Risks</div>
+      <div style="font-size:0.85rem;color:var(--muted);">
+        1. <strong style="color:var(--text);">Cash flow quality:</strong> FCF -₹998 Cr, OCF/NP -2.99x, debtor days 286 — reported profits are accounting fiction until cash converts<br>
+        2. <strong style="color:var(--text);">Customer/RPT concentration:</strong> 43% revenue via RPT with subsidiary Lineage Power; 97.8% order book PSU; few clients dominate
+      </div>
+    </div>
+  </div>
+
+  <div style="padding:12px;background:rgba(34,211,238,0.05);border-radius:8px;border-left:3px solid var(--cyan);">
+    <div style="font-size:0.8rem;color:var(--cyan);font-weight:600;margin-bottom:4px;">1 Thing to Track</div>
+    <div style="font-size:0.85rem;color:var(--muted);">
+      <strong>BESS margin realization and cash conversion cycle.</strong> The company is investing heavily in capacity (5→10 GWh) and BOO assets. Track whether Q1/Q2 FY27 shows: (a) BESS gross margins >20%, (b) debtor days <250, (c) OCF turning positive. If these don't materialize by H1 FY27, the "cheap" valuation is a value trap.
+    </div>
+  </div>
+
+  <div style="margin-top:15px;text-align:center;">
+    <div style="font-size:1.3rem;font-weight:700;color:var(--amber);">OVERALL RATING: MODERATE</div>
+    <div style="font-size:0.8rem;color:var(--muted);margin-top:4px;">
+      Attractive valuation + strong order book + BESS tailwinds vs. terrible cash flow + customer concentration + RPT risks
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<div class="footer">
+  <div style="margin-bottom:10px;">
+    <strong>Data Confidence:</strong> 8.0/11.0 (MODERATE) | 
+    <strong>Primary Limitation:</strong> Recent IPO (Oct 2025) — insufficient 5-year history, no consensus estimates, no PEG.
+  </div>
+  <div>
+    DISCLAIMER: This report is for informational purposes only and does not constitute investment advice. 
+    Data sourced from NSE, BSE, Screener.in, Tickertape, MoneyControl, Trendlyne, and company annual reports. 
+    SEBI-registered investment advisor consultation recommended. Past performance does not guarantee future results.
+  </div>
+  <div style="margin-top:8px;font-size:0.65rem;color:var(--muted);">
+    Investors Way Fundamental Terminal v2 | Generated: June 2, 2026 | Stock: Pace Digitek (PACEDIGITK)
+  </div>
+</div>
+
+</div>
+</body>
+</html>
